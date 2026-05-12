@@ -11,7 +11,7 @@ function CountButton({ delta, disabled, itemId, onClick }: { delta: number; disa
     <button
       onClick={() => onClick(itemId, delta)}
       disabled={disabled}
-      className="w-12 h-12 flex items-center justify-center rounded-xl text-2xl font-bold bg-gray-100 text-gray-700 active:bg-indigo-100 active:text-indigo-700 disabled:opacity-30 disabled:active:bg-gray-100 select-none"
+      className="w-14 h-14 flex items-center justify-center rounded-xl text-3xl font-bold bg-gray-100 text-gray-700 active:bg-indigo-100 active:text-indigo-700 disabled:opacity-30 disabled:active:bg-gray-100 select-none"
     >
       {delta > 0 ? '+' : '−'}
     </button>
@@ -28,19 +28,19 @@ function ItemCountCard({ item, onQuickUpdate }: { item: ItemWithRelations; onQui
       <div className="flex items-start justify-between gap-2 mb-4">
         <div className="flex items-start gap-3 min-w-0 flex-1">
           {item.image ? (
-            <div className="shrink-0 w-14 h-14 rounded-xl overflow-hidden bg-gray-100 border border-gray-200">
+            <div className="shrink-0 w-20 h-20 rounded-xl overflow-hidden bg-gray-100 border border-gray-200">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={item.image} alt="" className="w-full h-full object-cover" />
             </div>
           ) : (
-            <div className="shrink-0 w-14 h-14 rounded-xl bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-300">
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <div className="shrink-0 w-20 h-20 rounded-xl bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-300">
+              <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0022.5 18.75V5.25A2.25 2.25 0 0020.25 3H3.75A2.25 2.25 0 001.5 5.25v13.5A2.25 2.25 0 003.75 21z" />
               </svg>
             </div>
           )}
           <div className="min-w-0">
-            <Link href={`/items/${item.id}`} className="text-sm font-semibold text-gray-900 leading-tight block truncate hover:text-indigo-600">
+            <Link href={`/items/${item.id}`} className="text-base font-semibold text-gray-900 leading-tight block truncate hover:text-indigo-600">
               {item.name}
             </Link>
             <p className="text-xs text-gray-500 font-mono mt-0.5">{item.sku}</p>
@@ -56,7 +56,7 @@ function ItemCountCard({ item, onQuickUpdate }: { item: ItemWithRelations; onQui
       <div className="flex items-center justify-center gap-4 mb-3">
         <CountButton delta={-1} disabled={item.current_count <= 0} itemId={item.id} onClick={onQuickUpdate} />
         <div className="flex flex-col items-center min-w-[80px]">
-          <span className={`text-3xl md:text-4xl font-bold leading-none ${countColor}`}>
+          <span className={`text-4xl font-bold leading-none ${countColor}`}>
             {item.current_count}
           </span>
           {item.unit && (
