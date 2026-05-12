@@ -1,5 +1,6 @@
 import { getLocationsWithStats } from '@/lib/queries';
 import Link from 'next/link';
+import SearchBar from './SearchBar';
 
 function LocationCard({ loc }: { loc: import('@/lib/queries').LocationStats }) {
   const hasIssues = loc.out_count > 0 || loc.low_count > 0;
@@ -52,6 +53,7 @@ export default async function Home() {
 
   return (
     <div>
+      <SearchBar />
       <div className="flex items-baseline justify-between mb-5">
         <h1 className="text-xl md:text-2xl font-bold text-gray-900">Locations</h1>
         <span className="text-sm text-gray-500">{totalItems} items</span>

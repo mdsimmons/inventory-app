@@ -265,6 +265,23 @@ export async function getItemsByLocationId(locationId: number): Promise<ItemWith
   return rows as unknown as ItemWithRelations[];
 }
 
+export async function searchItems(query: string): Promise<ItemWithRelations[]> {
+  const pattern = `%${query}%`;
+  const { rows } = await db.execute({
+    sql: `
+      SELECT i.*, l.name as location_name, v.name as vendor_name
+      FROM items i
+      LEFT JOIN locations l ON i.location_id = l.id
+      LEFT JOIN vendors v ON i.vendor_id = v.id
+      WHERE i.name LIKE ? OR i.sku LIKE ?
+      ORDER BY i.name
+      LIMIT 50
+    `,
+    args: [pattern, pattern],
+  });
+  return rows as unknown as ItemWithRelations[];
+}
+
 export async function getSetting(key: string): Promise<string | null> {
   const { rows } = await db.execute({ sql: 'SELECT value FROM settings WHERE key = ?', args: [key] });
   return (rows[0] as unknown as { value: string } | undefined)?.value ?? null;
