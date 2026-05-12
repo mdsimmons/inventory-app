@@ -275,8 +275,8 @@ export default function ManageContent({
               <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 gap-2">
                 <input type="text" name="name" placeholder="Item name" required className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500" />
                 <input type="text" name="sku" placeholder="SKU" className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500" />
-                <input type="number" name="current_count" placeholder="Count" className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500" />
-                <input type="number" name="reorder_threshold" placeholder="Threshold" className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500" />
+                <input type="number" name="current_count" placeholder="Count" step="any" className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500" />
+                <input type="number" name="reorder_threshold" placeholder="Threshold" step="any" className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500" />
               </div>
               <button type="submit" className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-500 active:bg-indigo-700 shrink-0">Add</button>
             </div>

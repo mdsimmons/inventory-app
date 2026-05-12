@@ -63,8 +63,8 @@ export async function addItem(formData: FormData) {
   await createItem(
     formData.get('name') as string,
     formData.get('sku') as string || null,
-    parseInt(formData.get('current_count') as string) || 0,
-    parseInt(formData.get('reorder_threshold') as string) || 10,
+    parseFloat(formData.get('current_count') as string) || 0,
+    parseFloat(formData.get('reorder_threshold') as string) || 10,
     parseInt(formData.get('location_id') as string) || null,
     parseInt(formData.get('vendor_id') as string) || null,
     undefined,

@@ -43,8 +43,8 @@ export async function reorderCaseAction(itemId: number) {
 
 export async function updateItemAction(formData: FormData) {
   const id = parseInt(formData.get('id') as string);
-  const newCount = parseInt(formData.get('current_count') as string) || 0;
-  const newThreshold = parseInt(formData.get('reorder_threshold') as string) || 10;
+  const newCount = parseFloat(formData.get('current_count') as string) || 0;
+  const newThreshold = parseFloat(formData.get('reorder_threshold') as string) || 10;
   const vendorId = parseInt(formData.get('vendor_id') as string) || null;
   const unitsPerCase = parseInt(formData.get('units_per_case') as string) || 1;
   const caseUnit = (formData.get('case_unit') as string) || '';

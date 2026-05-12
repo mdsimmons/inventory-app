@@ -37,11 +37,11 @@ export default function EditItemForm({
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Current Count</label>
-          <input type="number" name="current_count" defaultValue={item.current_count} min={0} className="block w-full rounded-md border border-gray-300 px-3 py-2.5 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500" />
+          <input type="number" name="current_count" defaultValue={item.current_count} min={0} step="any" className="block w-full rounded-md border border-gray-300 px-3 py-2.5 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500" />
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Threshold</label>
-          <input type="number" name="reorder_threshold" defaultValue={item.reorder_threshold} min={0} className="block w-full rounded-md border border-gray-300 px-3 py-2.5 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500" />
+          <input type="number" name="reorder_threshold" defaultValue={item.reorder_threshold} min={0} step="any" className="block w-full rounded-md border border-gray-300 px-3 py-2.5 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500" />
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Unit</label>

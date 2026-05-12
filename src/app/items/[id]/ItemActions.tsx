@@ -17,7 +17,7 @@ export default function ItemActions({ item }: { item: ItemWithRelations }) {
   async function handleUpdate(formData: FormData) {
     setSaving(true);
     setMessage(null);
-    const newCount = parseInt(formData.get('count') as string);
+    const newCount = parseFloat(formData.get('count') as string);
     addOptimistic(newCount);
     const result = await updateItemCountAction(item.id, newCount);
     if (result.success) {
@@ -57,6 +57,7 @@ export default function ItemActions({ item }: { item: ItemWithRelations }) {
               name="count"
               id="count"
               min={0}
+              step="any"
               defaultValue={item.current_count}
               className="block w-full rounded-lg border border-gray-300 px-4 py-3 text-base shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
             />
