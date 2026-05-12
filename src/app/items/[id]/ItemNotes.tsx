@@ -26,9 +26,9 @@ export default function ItemNotes({ itemId, notes: initial }: { itemId: number; 
   const hasNotes = initial.length > 0;
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 md:p-6 mb-4">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-3">
       <div className="flex items-center justify-between mb-3">
-        <h2 className="text-base md:text-lg font-semibold text-gray-900">Notes</h2>
+        <h2 className="text-sm font-semibold text-gray-900">Notes</h2>
         {!editing && (
           <button
             onClick={() => setEditing(true)}

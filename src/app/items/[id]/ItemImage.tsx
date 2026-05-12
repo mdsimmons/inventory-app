@@ -51,9 +51,9 @@ export default function ItemImage({ itemId, image }: { itemId: number; image: st
   const hasImage = img.length > 0;
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 md:p-6 mb-4">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-3">
       <div className="flex items-center justify-between mb-3">
-        <h2 className="text-base md:text-lg font-semibold text-gray-900">Photo</h2>
+        <h2 className="text-sm font-semibold text-gray-900">Photo</h2>
         {!editing && (
           <button
             onClick={() => setEditing(true)}

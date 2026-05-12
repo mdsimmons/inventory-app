@@ -16,3 +16,15 @@ body {
   background: var(--background);
   color: var(--foreground);
 }
+
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .safe-top {
+    padding-top: env(safe-area-inset-bottom);
+  }
+  .safe-bottom-margin {
+    margin-bottom: env(safe-area-inset-bottom);
+  }
+}
