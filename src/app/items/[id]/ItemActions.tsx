@@ -1,13 +1,16 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useOptimistic } from 'react';
 import { updateItemCountAction, reorderItemAction } from './actions';
 import type { ItemWithRelations } from '@/lib/db';
 
 export default function ItemActions({ item }: { item: ItemWithRelations }) {
   const router = useRouter();
-  const [count, setCount] = useState(item.current_count);
+  const [optimisticCount, addOptimistic] = useOptimistic(
+    item.current_count,
+    (_state, newCount: number) => Math.max(0, newCount)
+  );
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -15,9 +18,9 @@ export default function ItemActions({ item }: { item: ItemWithRelations }) {
     setSaving(true);
     setMessage(null);
     const newCount = parseInt(formData.get('count') as string);
+    addOptimistic(newCount);
     const result = await updateItemCountAction(item.id, newCount);
     if (result.success) {
-      setCount(newCount);
       setMessage('Count updated');
       router.refresh();
     } else {
@@ -29,6 +32,7 @@ export default function ItemActions({ item }: { item: ItemWithRelations }) {
   async function handleReorder() {
     setSaving(true);
     setMessage(null);
+    addOptimistic(item.current_count);
     const result = await reorderItemAction(item.id, item.vendor_id!, item.units_per_case);
     if (result.success) {
       setMessage('Added to reorder list');
@@ -39,7 +43,7 @@ export default function ItemActions({ item }: { item: ItemWithRelations }) {
     setSaving(false);
   }
 
-  const isLow = count < item.reorder_threshold;
+  const isLow = optimisticCount < item.reorder_threshold;
 
   return (
     <div className="space-y-4">
@@ -53,7 +57,7 @@ export default function ItemActions({ item }: { item: ItemWithRelations }) {
               name="count"
               id="count"
               min={0}
-              defaultValue={count}
+              defaultValue={item.current_count}
               className="block w-full sm:w-32 rounded-md border border-gray-300 px-3 py-2.5 md:py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
             />
           </div>

@@ -1,23 +1,15 @@
 'use client';
 
-import { useTransition } from 'react';
+import { useOptimistic, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { quickUpdateCountAction } from '@/app/items/[id]/actions';
 import type { ItemWithRelations } from '@/lib/db';
 
-function CountButton({ delta, disabled, itemId }: { delta: number; disabled: boolean; itemId: number }) {
-  const router = useRouter();
-  const [, startTransition] = useTransition();
-
-  async function handleClick() {
-    await quickUpdateCountAction(itemId, delta);
-    startTransition(() => router.refresh());
-  }
-
+function CountButton({ delta, disabled, itemId, onClick }: { delta: number; disabled: boolean; itemId: number; onClick: (itemId: number, delta: number) => void }) {
   return (
     <button
-      onClick={handleClick}
+      onClick={() => onClick(itemId, delta)}
       disabled={disabled}
       className="w-12 h-12 md:w-14 md:h-14 flex items-center justify-center rounded-xl text-2xl font-bold bg-gray-100 text-gray-700 active:bg-indigo-100 active:text-indigo-700 disabled:opacity-30 disabled:active:bg-gray-100 disabled:active:text-gray-700 select-none"
     >
@@ -26,7 +18,7 @@ function CountButton({ delta, disabled, itemId }: { delta: number; disabled: boo
   );
 }
 
-function ItemCountCard({ item }: { item: ItemWithRelations }) {
+function ItemCountCard({ item, onQuickUpdate }: { item: ItemWithRelations; onQuickUpdate: (itemId: number, delta: number) => void }) {
   const isLow = item.current_count < item.reorder_threshold;
   const isOut = item.current_count <= 0;
   const countColor = isOut ? 'text-red-600' : isLow ? 'text-amber-600' : 'text-gray-900';
@@ -64,7 +56,7 @@ function ItemCountCard({ item }: { item: ItemWithRelations }) {
       </div>
 
       <div className="flex items-center justify-center gap-4 md:gap-6 mb-4">
-        <CountButton delta={-1} disabled={item.current_count <= 0} itemId={item.id} />
+        <CountButton delta={-1} disabled={item.current_count <= 0} itemId={item.id} onClick={onQuickUpdate} />
         <div className="flex flex-col items-center min-w-[80px]">
           <span className={`text-3xl md:text-4xl font-bold leading-none ${countColor}`}>
             {item.current_count}
@@ -73,7 +65,7 @@ function ItemCountCard({ item }: { item: ItemWithRelations }) {
             <span className="text-xs text-gray-400 mt-1 uppercase">{item.unit}</span>
           )}
         </div>
-        <CountButton delta={1} disabled={false} itemId={item.id} />
+        <CountButton delta={1} disabled={false} itemId={item.id} onClick={onQuickUpdate} />
       </div>
 
       <div className="flex items-center justify-between pt-3 border-t border-gray-100">
@@ -106,11 +98,32 @@ function ItemCountCard({ item }: { item: ItemWithRelations }) {
   );
 }
 
-export default function LocationItemList({ items }: { items: ItemWithRelations[] }) {
+export default function LocationItemList({ items: initialItems }: { items: ItemWithRelations[] }) {
+  const router = useRouter();
+  const [, startTransition] = useTransition();
+
+  const [optimisticItems, addOptimistic] = useOptimistic(
+    initialItems,
+    (state, { itemId, delta }: { itemId: number; delta: number }) =>
+      state.map(item =>
+        item.id === itemId
+          ? { ...item, current_count: Math.max(0, item.current_count + delta) }
+          : item
+      )
+  );
+
+  function handleQuickUpdate(itemId: number, delta: number) {
+    addOptimistic({ itemId, delta });
+    startTransition(async () => {
+      await quickUpdateCountAction(itemId, delta);
+      router.refresh();
+    });
+  }
+
   return (
     <div className="space-y-3">
-      {items.map((item) => <ItemCountCard key={item.id} item={item} />)}
-      {items.length === 0 && (
+      {optimisticItems.map((item) => <ItemCountCard key={item.id} item={item} onQuickUpdate={handleQuickUpdate} />)}
+      {optimisticItems.length === 0 && (
         <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
           <p className="text-gray-500">No items in this location.</p>
         </div>
