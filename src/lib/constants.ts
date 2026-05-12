@@ -1,0 +1,18 @@
+export const UNIT_OPTIONS = [
+  { value: '', label: '—' },
+  { value: 'pcs', label: 'Pieces' },
+  { value: 'case', label: 'Case' },
+  { value: 'pack', label: 'Pack' },
+  { value: 'box', label: 'Box' },
+  { value: 'gallon', label: 'Gallon' },
+  { value: 'liter', label: 'Liter' },
+  { value: 'pound', label: 'Pound' },
+  { value: 'oz', label: 'Ounce' },
+  { value: 'kg', label: 'Kilogram' },
+  { value: 'meter', label: 'Meter' },
+  { value: 'foot', label: 'Foot' },
+  { value: 'roll', label: 'Roll' },
+  { value: 'pair', label: 'Pair' },
+  { value: 'set', label: 'Set' },
+  { value: 'can', label: 'Can' },
+] as const;

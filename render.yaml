@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: inventory-app
+    runtime: node
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: TURSO_DB_URL
+        sync: false
+      - key: TURSO_DB_TOKEN
+        sync: false
