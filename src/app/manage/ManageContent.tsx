@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useState, useOptimistic, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import type { Vendor, Location, ItemWithRelations } from '@/lib/db';
@@ -105,6 +105,95 @@ function ConfirmDeleteForm({ action, children, message }: {
   return <form onSubmit={handleSubmit} className="inline">{children}</form>;
 }
 
+function LocationList({ locations: initial }: { locations: Location[] }) {
+  const router = useRouter();
+  const [, startTransition] = useTransition();
+  const [editLoc, setEditLoc] = useState<Location | null>(null);
+
+  const [optimisticLocs, addOptimistic] = useOptimistic(
+    initial,
+    (state, { id, dir }: { id: number; dir: 'up' | 'down' }) => {
+      const idx = state.findIndex((l) => l.id === id);
+      if (idx === -1) return state;
+      const swapIdx = dir === 'up' ? idx - 1 : idx + 1;
+      if (swapIdx < 0 || swapIdx >= state.length) return state;
+      const next = [...state];
+      [next[idx], next[swapIdx]] = [next[swapIdx], next[idx]];
+      return next;
+    }
+  );
+
+  function handleMove(id: number, dir: 'up' | 'down') {
+    addOptimistic({ id, dir });
+    startTransition(async () => {
+      const formData = new FormData();
+      formData.set('id', String(id));
+      formData.set('dir', dir);
+      await moveLocation(formData);
+      router.refresh();
+    });
+  }
+
+  return (
+    <div>
+      <ActionForm action={addLocation} className="pb-4 border-b border-gray-100">
+        <div className="flex flex-col sm:flex-row gap-2 mb-2">
+          <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <input type="text" name="name" placeholder="Location name" required className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500" />
+            <input type="text" name="description" placeholder="Description" className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500" />
+          </div>
+          <button type="submit" className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-500 active:bg-indigo-700 shrink-0">Add</button>
+        </div>
+      </ActionForm>
+      <div>
+        {optimisticLocs.map((loc) => (
+          <div key={loc.id}>
+            <div className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium text-gray-900 truncate">{loc.name}</p>
+                {loc.description && <p className="text-xs text-gray-500 truncate">{loc.description}</p>}
+              </div>
+              <div className="flex items-center gap-1 shrink-0 ml-2">
+                <button onClick={() => handleMove(loc.id, 'up')} className="p-1.5 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100">
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" /></svg>
+                </button>
+                <button onClick={() => handleMove(loc.id, 'down')} className="p-1.5 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100">
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                </button>
+                <button onClick={() => setEditLoc(loc)} className="p-1.5 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100">
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                </button>
+                <ConfirmDeleteForm action={removeLocation} message="Delete this location? Items in this location will become unassigned.">
+                  <input type="hidden" name="id" value={loc.id} />
+                  <button type="submit" className="p-1.5 rounded-md text-gray-400 hover:text-red-600 hover:bg-red-50">
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                  </button>
+                </ConfirmDeleteForm>
+              </div>
+            </div>
+            {editLoc?.id === loc.id && (
+              <EditForm
+                fields={[
+                  { name: 'name', label: 'Name', required: true },
+                  { name: 'description', label: 'Description' },
+                ]}
+                data={editLoc}
+                onSubmit={async (formData) => {
+                  await editLocationAction(formData);
+                  setEditLoc(null);
+                  router.refresh();
+                }}
+                onCancel={() => setEditLoc(null)}
+              />
+            )}
+          </div>
+        ))}
+        {optimisticLocs.length === 0 && <p className="text-xs text-gray-500 py-4 text-center">No locations yet.</p>}
+      </div>
+    </div>
+  );
+}
+
 export default function ManageContent({
   locations, vendors, items,
 }: {
@@ -113,7 +202,6 @@ export default function ManageContent({
   items: ItemWithRelations[];
 }) {
   const router = useRouter();
-  const [editLoc, setEditLoc] = useState<Location | null>(null);
   const [editVendor, setEditVendor] = useState<Vendor | null>(null);
 
   return (
@@ -122,68 +210,7 @@ export default function ManageContent({
       <div className="space-y-4">
 
         <CollapsibleSection title="Locations" count={locations.length} defaultOpen>
-          <ActionForm action={addLocation} className="pb-4 border-b border-gray-100">
-            <div className="flex flex-col sm:flex-row gap-2 mb-2">
-              <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-2">
-                <input type="text" name="name" placeholder="Location name" required className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500" />
-                <input type="text" name="description" placeholder="Description" className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500" />
-              </div>
-              <button type="submit" className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-500 active:bg-indigo-700 shrink-0">Add</button>
-            </div>
-          </ActionForm>
-          <div>
-            {locations.map((loc) => (
-              <div key={loc.id}>
-                <div className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium text-gray-900 truncate">{loc.name}</p>
-                    {loc.description && <p className="text-xs text-gray-500 truncate">{loc.description}</p>}
-                  </div>
-                  <div className="flex items-center gap-1 shrink-0 ml-2">
-                    <ActionForm action={moveLocation}>
-                      <input type="hidden" name="id" value={loc.id} />
-                      <input type="hidden" name="dir" value="up" />
-                      <button type="submit" className="p-1.5 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100">
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" /></svg>
-                      </button>
-                    </ActionForm>
-                    <ActionForm action={moveLocation}>
-                      <input type="hidden" name="id" value={loc.id} />
-                      <input type="hidden" name="dir" value="down" />
-                      <button type="submit" className="p-1.5 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100">
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
-                      </button>
-                    </ActionForm>
-                    <button onClick={() => setEditLoc(loc)} className="p-1.5 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100">
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
-                    </button>
-                    <ConfirmDeleteForm action={removeLocation} message="Delete this location? Items in this location will become unassigned.">
-                      <input type="hidden" name="id" value={loc.id} />
-                      <button type="submit" className="p-1.5 rounded-md text-gray-400 hover:text-red-600 hover:bg-red-50">
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                      </button>
-                    </ConfirmDeleteForm>
-                  </div>
-                </div>
-                {editLoc?.id === loc.id && (
-                  <EditForm
-                    fields={[
-                      { name: 'name', label: 'Name', required: true },
-                      { name: 'description', label: 'Description' },
-                    ]}
-                    data={editLoc}
-                    onSubmit={async (formData) => {
-                      await editLocationAction(formData);
-                      setEditLoc(null);
-                      router.refresh();
-                    }}
-                    onCancel={() => setEditLoc(null)}
-                  />
-                )}
-              </div>
-            ))}
-            {locations.length === 0 && <p className="text-xs text-gray-500 py-4 text-center">No locations yet.</p>}
-          </div>
+          <LocationList locations={locations} />
         </CollapsibleSection>
 
         <CollapsibleSection title="Vendors" count={vendors.length} defaultOpen>
