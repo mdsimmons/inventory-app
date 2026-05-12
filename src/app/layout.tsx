@@ -20,6 +20,7 @@ export const metadata: Metadata = {
   description: "Inventory management for your stockroom",
 };
 
+export const dynamic = 'force-dynamic';
 export const viewport = "width=device-width, initial-scale=1, viewport-fit=cover";
 
 export default async function RootLayout({
