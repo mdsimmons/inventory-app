@@ -76,8 +76,10 @@ function ActionForm({ action, children, className }: {
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const formData = new FormData(e.currentTarget);
+    const form = e.currentTarget;
+    const formData = new FormData(form);
     await action(formData);
+    form.reset();
     startTransition(() => router.refresh());
   }
 
