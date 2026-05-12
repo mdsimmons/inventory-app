@@ -4,6 +4,28 @@ import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { saveImageAction } from './actions';
 
+function compressImage(dataUrl: string, maxDim = 800, quality = 0.7): Promise<string> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      let w = img.width;
+      let h = img.height;
+      if (w > maxDim || h > maxDim) {
+        const ratio = Math.min(maxDim / w, maxDim / h);
+        w = Math.round(w * ratio);
+        h = Math.round(h * ratio);
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext('2d')!;
+      ctx.drawImage(img, 0, 0, w, h);
+      resolve(canvas.toDataURL('image/jpeg', quality));
+    };
+    img.src = dataUrl;
+  });
+}
+
 export default function ItemImage({ itemId, image }: { itemId: number; image: string }) {
   const [img, setImg] = useState(image);
   const [editing, setEditing] = useState(false);
@@ -18,9 +40,9 @@ export default function ItemImage({ itemId, image }: { itemId: number; image: st
     setSaving(true);
     const reader = new FileReader();
     reader.onload = async (ev) => {
-      const dataUrl = ev.target?.result as string;
-      await saveImageAction(itemId, dataUrl);
-      setImg(dataUrl);
+      const compressed = await compressImage(ev.target?.result as string);
+      await saveImageAction(itemId, compressed);
+      setImg(compressed);
       setEditing(false);
       setSaving(false);
       router.refresh();
@@ -32,8 +54,9 @@ export default function ItemImage({ itemId, image }: { itemId: number; image: st
     const url = urlRef.current?.value?.trim();
     if (!url) return;
     setSaving(true);
-    await saveImageAction(itemId, url);
-    setImg(url);
+    const compressed = await compressImage(url);
+    await saveImageAction(itemId, compressed);
+    setImg(compressed);
     setEditing(false);
     setSaving(false);
     router.refresh();
