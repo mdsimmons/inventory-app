@@ -1,13 +1,23 @@
 import { createClient } from '@libsql/client';
 
-const url = process.env.TURSO_DB_URL || 'file:data/inventory.db';
-const authToken = process.env.TURSO_DB_TOKEN;
+const isTurso = !!process.env.TURSO_DB_URL;
 
 let _db: ReturnType<typeof createClient> | null = null;
 
 function getDb() {
   if (!_db) {
-    _db = createClient({ url, authToken });
+    if (isTurso) {
+      const remoteUrl = process.env.TURSO_DB_URL!;
+      const authToken = process.env.TURSO_DB_TOKEN;
+      const tmp = process.env.TMPDIR || '/tmp';
+      _db = createClient({
+        url: `file:${tmp}/inventory.db`,
+        syncUrl: remoteUrl,
+        authToken,
+      });
+    } else {
+      _db = createClient({ url: 'file:data/inventory.db' });
+    }
   }
   return _db;
 }
@@ -41,6 +51,7 @@ async function migrate(db: ReturnType<typeof createClient>) {
 
 export async function initSchema() {
   const db = getDb();
+  if (isTurso) await db.sync();
   await db.execute(`
     CREATE TABLE IF NOT EXISTS vendors (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
